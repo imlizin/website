@@ -1,0 +1,289 @@
+:root {
+  --bg: #fdf6f2;
+  --ink: #464646;
+  --ink-heading: #5c5049;
+  --marker: #e4d9d3;
+
+  --font-display: "gryphius-mvb", "EB Garamond", Georgia, serif;
+  --font-label: "Manrope", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  /* The design is a 1440 × 1024 frame. Sizes below scale with the window
+     (by height, or by width when the window is narrow) so the illustration
+     and the list keep the same relationship. */
+  --frame: min(100vh, 100vw * 1024 / 1440);
+  --art-width: 58.5vw; /* 843 of the design's 1440 */
+  /* The text sits on the left. Its left margin shrinks on smaller windows so
+     the links never run under the painting. */
+  --content-left: clamp(24px, min(14vw, calc(41.5vw - 340px)), 200px);
+  --content-top: calc(var(--frame) * 313 / 1024);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Illustration ------------------------------------------------------------ */
+
+.art {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: var(--art-width);
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* The stage is the painting's own 843 × 1024 box. It fills the art area and
+   crops the overflow evenly, like "cover". Birds are placed inside it as
+   percentages, so they stay locked to the painting at any window size. */
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(var(--art-width), calc(100vh * 843 / 1024));
+  aspect-ratio: 843 / 1024;
+  transform: translate(-50%, -50%);
+}
+
+.stage img {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.painting {
+  width: 100%;
+  height: 100%;
+}
+
+/* Birds ------------------------------------------------------------------- */
+
+/* Each bird is a soft-edged patch of the painting with a different head and
+   tail pose. The patches sit exactly on top of the painting and switch on and
+   off, so every bird cycles: rest, pose B, rest, pose C. Left, top and
+   width place the patch in the painting. */
+.pose {
+  position: absolute;
+  height: auto;
+  opacity: 0;
+  will-change: opacity;
+  animation-duration: var(--dur);
+  animation-delay: var(--delay);
+  animation-iteration-count: infinite;
+  animation-timing-function: step-end;
+}
+
+.pose-b { animation-name: pose-b; }
+.pose-c { animation-name: pose-c; }
+
+.bird-1 { left: 7.53%;  top: 15.92%; width: 32.38%; --dur: 16s; --delay: -3s; }
+.bird-2 { left: 26.75%; top: 31.2%;  width: 35.94%; --dur: 13s; --delay: -7s; }
+.bird-3 { left: 13.64%; top: 41.41%; width: 36.71%; --dur: 18s; --delay: -11s; }
+.bird-4 { left: 33.39%; top: 66.8%;  width: 27.88%; --dur: 15s; --delay: -5s; }
+
+/* Poses switch instantly, with no fade in between. */
+@keyframes pose-b {
+  0%, 27.99% { opacity: 0; }
+  28%, 41.99% { opacity: 1; }
+  42%, 100% { opacity: 0; }
+}
+
+@keyframes pose-c {
+  0%, 67.99% { opacity: 0; }
+  68%, 81.99% { opacity: 1; }
+  82%, 100% { opacity: 0; }
+}
+
+/* Falling leaves ---------------------------------------------------------- */
+
+.leaves {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-size: calc(var(--art-width) / 40);
+}
+
+.leaf {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: calc(var(--size) * 1em);
+  height: calc(var(--size) * 1em * 0.55);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: fall var(--fall-time) linear var(--fall-delay) infinite;
+}
+
+.leaf svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: sway var(--sway-time) ease-in-out var(--sway-delay) infinite alternate;
+}
+
+@keyframes fall {
+  0%   { transform: translate3d(0, -4vh, 0); opacity: 0; }
+  8%   { opacity: var(--alpha); }
+  88%  { opacity: var(--alpha); }
+  100% { transform: translate3d(var(--drift), var(--fall-distance), 0); opacity: 0; }
+}
+
+@keyframes sway {
+  from { transform: translateX(-0.9em) rotate(calc(var(--spin) * -1)); }
+  to   { transform: translateX(0.9em) rotate(var(--spin)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pose,
+  .leaf,
+  .leaf svg {
+    animation: none;
+  }
+
+  .leaves {
+    display: none;
+  }
+}
+
+/* Content ----------------------------------------------------------------- */
+
+.content {
+  position: relative;
+  padding: var(--content-top) calc(var(--art-width) + 24px) 96px var(--content-left);
+}
+
+.title {
+  margin: 0 0 26px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: normal;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-heading);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.group-title {
+  margin: 0 0 12px;
+  font-family: var(--font-label);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: normal;
+  color: var(--ink);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.marker {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border-radius: 2px;
+  background: var(--marker);
+  overflow: hidden;
+}
+
+.icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.link {
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.link-text {
+  font-size: 14px;
+  line-height: normal;
+  overflow-wrap: anywhere;
+}
+
+.underline {
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 1px;
+  transition: opacity 150ms ease-out;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--ink-heading);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover .underline {
+    opacity: 0.35;
+  }
+}
+
+/* Small screens: illustration on top, list below --------------------------- */
+
+@media (max-width: 767px) {
+  .art {
+    position: relative;
+    top: 0;
+    right: auto;
+    width: auto;
+    height: auto;
+    max-height: 70vh;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(100%, 480px);
+    transform: none;
+  }
+
+  .content {
+    padding: 32px 24px 64px;
+  }
+}
